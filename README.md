@@ -8,7 +8,7 @@ Visit Akismet at <http://akismet.com/>.
  
 You will need an Akismet API key.
 
-<code>
+~~~~~~~~~ { php }
 <?php
 
 try {
@@ -19,12 +19,19 @@ try {
 	
 	// Supply as much information as possible, but you do not have to supply everything.
 	$comment = array(
-		'permalink' => 'http://www.example.com/why-would-you-post-spam', // The (perma-)link to your post.
-		'comment_type' => 'comment', //The type of the comment. May be blank, "comment", "trackback", "pingback", or a made up value like "registration".
-		'comment_author' => 'Bob', // The name of the author.
-		'comment_author_email' => 'bob@example.com', // The author's email.
-		'comment_author_url' => 'http://bobs-website.example.com', // The author's homepage.
-		'comment_content' => 'This is the text of comment.' // The content of the comment.
+		// The (perma-)link to your post.
+		'permalink' => 'http://www.example.com/why-would-you-post-spam',
+		// The type of the comment. May be blank, "comment", "trackback", 
+		// "pingback", or a made up value like "registration".
+		'comment_type' => 'comment',
+		// The name of the author.
+		'comment_author' => 'Bob', 
+		// The author's email.
+		'comment_author_email' => 'bob@example.com', 
+		// The author's homepage.
+		'comment_author_url' => 'http://bobs-website.example.com', 
+		// The content of the comment.
+		'comment_content' => 'This is the text of comment.' 
 	);
 	
 	/*
@@ -39,9 +46,9 @@ try {
 } catch (AkismetClientException $e) {
 	echo 'Something went wrong.';
 }
-</code>
+~~~~~~~~~
 
-You can also `submitSpam()` or `submitHam()`. The parameters are the same as in `checkComment`.
+You can also `submitSpam()` or `submitHam()`. The parameters are the same as in `checkComment()`.
 
 Use `enableExtendedPrivacy()` if you do not want to send the users IP address, user agent and referer to Akismet.
 This may break spam detection or raise other errors at the Akismet-API.
