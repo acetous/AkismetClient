@@ -45,31 +45,23 @@ class AkismetClient
 	
 	/**
 	 * Check if a comment is spam. Returns true if spam, false if not. You can use an empty string for any parameter.
-	 * @param String $permalink The (perma-)link to your post.
-	 * @param String $commentType The type of the comment. May be blank, "comment", "trackback", "pingback", or a made up value like "registration".
-	 * @param String $commentAuthor The name of the author.
-	 * @param String $commentAuthorEmail The author's email.
-	 * @param String $commentAuthorUrl The author's homepage.
-	 * @param String $commentContent The content of the comment.
+	 * @param Array $comment An array containing values several or all of the following keys.
+	 * - 'permalink' The (perma-)link to your post.
+	 * - 'comment_type' The type of the comment. May be blank, "comment", "trackback", "pingback", or a made up value like "registration".
+	 * - 'comment_author' The name of the author.
+	 * - 'comment_author_email' The author's email.
+	 * - 'comment_author_url' The author's homepage.
+	 * - 'comment_content' The content of the comment.
+	 * Supply as many of them as you want to. Just skip everything you cannot supply.
 	 * @throws AkismetClientException
 	 */
-	public function checkComment($permalink = '', $commentType = '', $commentAuthor = '', $commentAuthorEmail = '', $commentAuthorUrl = '', $commentContent = '') {
+	public function checkComment($comment) {
 		$this->verifyKey();
+		$parameters = $this->applyDefault($comment);
 		$res = $this->makeCall(
-				sprintf('http://%s.rest.akismet.com/1.1/comment-check', $this->apiKey),
-				array(
-						'blog' => $this->blogUrl,
-						'user_ip' => self::getHeader('REMOTE_ADDR'),
-						'user_agent' => self::getHeader('HTTP_USER_AGENT'),
-						'referer' => self::getHeader('HTTP_REFERER'),
-						
-						'permalink' => $permalink,
-						'comment_type' => $commentType,
-						'comment_author' => $commentAuthor,
-						'comment_author_email' => $commentAuthorEmail,
-						'comment_author_url' => $commentAuthorUrl,
-						'comment_content' => $commentContent
-		));
+			sprintf('http://%s.rest.akismet.com/1.1/comment-check', $this->apiKey),
+			$parameters
+		);
 		
 		if ($res == 'invalid') {
 			throw new AkismetClientException('Error checking comment.');
@@ -80,31 +72,16 @@ class AkismetClient
 
 	/**
 	 * Submit spam. You can use an empty string for any parameter.
-	 * @param String $permalink The (perma-)link to your post.
-	 * @param String $commentType The type of the comment. May be blank, "comment", "trackback", "pingback", or a made up value like "registration".
-	 * @param String $commentAuthor The name of the author.
-	 * @param String $commentAuthorEmail The author's email.
-	 * @param String $commentAuthorUrl The author's homepage.
-	 * @param String $commentContent The content of the comment.
+	 * @param Array $comment See <code>checkComment()</code>.
 	 * @throws AkismetClientException
 	 */
-	public function submitSpam($permalink = '', $commentType = '', $commentAuthor = '', $commentAuthorEmail = '', $commentAuthorUrl = '', $commentContent = '') {
+	public function submitSpam($comment) {
 		$this->verifyKey();
+		$parameters = $this->applyDefault($comment);
 		$res = $this->makeCall(
-				sprintf('http://%s.rest.akismet.com/1.1/submit-spam', $this->apiKey),
-				array(
-						'blog' => $this->blogUrl,
-						'user_ip' => self::getHeader('REMOTE_ADDR'),
-						'user_agent' => self::getHeader('HTTP_USER_AGENT'),
-						'referer' => self::getHeader('HTTP_REFERER'),
-						
-						'permalink' => $permalink,
-						'comment_type' => $commentType,
-						'comment_author' => $commentAuthor,
-						'comment_author_email' => $commentAuthorEmail,
-						'comment_author_url' => $commentAuthorUrl,
-						'comment_content' => $commentContent
-		));
+			sprintf('http://%s.rest.akismet.com/1.1/submit-spam', $this->apiKey),
+			$parameters
+		);
 		
 		if ($res == 'invalid') {
 			throw new AkismetClientException('Error submitting spam.');
@@ -113,35 +90,47 @@ class AkismetClient
 
 	/**
 	 * Submit ham. You can use an empty string for any parameter.
-	 * @param String $permalink The (perma-)link to your post.
-	 * @param String $commentType The type of the comment. May be blank, "comment", "trackback", "pingback", or a made up value like "registration".
-	 * @param String $commentAuthor The name of the author.
-	 * @param String $commentAuthorEmail The author's email.
-	 * @param String $commentAuthorUrl The author's homepage.
-	 * @param String $commentContent The content of the comment.
+	 * @param Array $comment See <code>checkComment()</code>.
 	 * @throws AkismetClientException
 	 */
-	public function submitHam($permalink = '', $commentType = '', $commentAuthor = '', $commentAuthorEmail = '', $commentAuthorUrl = '', $commentContent = '') {
+	public function submitHam($comment) {
 		$this->verifyKey();
+		$parameters = $this->applyDefault($comment);
 		$res = $this->makeCall(
-				sprintf('http://%s.rest.akismet.com/1.1/submit-ham', $this->apiKey),
-				array(
-						'blog' => $this->blogUrl,
-						'user_ip' => $this->getHeader('REMOTE_ADDR'),
-						'user_agent' => $this->getHeader('HTTP_USER_AGENT'),
-						'referer' => $this->getHeader('HTTP_REFERER'),
-						
-						'permalink' => $permalink,
-						'comment_type' => $commentType,
-						'comment_author' => $commentAuthor,
-						'comment_author_email' => $commentAuthorEmail,
-						'comment_author_url' => $commentAuthorUrl,
-						'comment_content' => $commentContent
-		));
+			sprintf('http://%s.rest.akismet.com/1.1/submit-ham', $this->apiKey),
+			$parameters
+		);
 		
 		if ($res == 'invalid') {
 			throw new AkismetClientException('Error submitting ham.');
 		}
+	}
+	
+	/**
+	 * Apply the default values to all parameters.
+	 * @param Array $parameters
+	 */
+	private function applyDefault($parameters) {
+		$defaults = array(
+			'blog' => $this->blogUrl,
+			'user_ip' => $this->getHeader('REMOTE_ADDR'),
+			'user_agent' => $this->getHeader('HTTP_USER_AGENT'),
+			'referer' => $this->getHeader('HTTP_REFERER'),
+			
+			'permalink' => '',
+			'comment_type' => '',
+			'comment_author' => '',
+			'comment_author_email' => '',
+			'comment_author_url' => '',
+			'comment_content' => ''
+		);
+		
+		$ret = array();
+		foreach ($defaults as $key => $default) {
+			$ret[$key] = isset($parameters[$key]) ? $parameters[$key] : $default;
+		}
+		
+		return $ret;
 	}
 	
 	/**
